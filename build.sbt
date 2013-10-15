@@ -8,7 +8,7 @@ parallelExecution := false
 
 libraryDependencies ++= Seq(
     "javax.media" % "jai_core" % "1.1.3" from "http://repo.opengeo.org/javax/media/jai_core/1.1.3/jai_core-1.1.3.jar",
-    "com.azavea.geotrellis" %% "geotrellis" % "0.9.0-SNAPSHOT",
+    "com.azavea.geotrellis" %% "geotrellis" % "0.9.0-20131015-SNAPSHOT",
     "com.azavea.geotrellis" %% "geotrellis-server" % "0.9.0-SNAPSHOT"
 )
 

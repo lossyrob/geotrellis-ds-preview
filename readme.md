@@ -9,6 +9,56 @@ as well as a functional, scala-friendly style very similar to transformations on
 collections.  The semantics of distribution are much simpler than before, and some
 critical issues have been resolved.
 
+Running the Preview Demo
+------------------------
+
+This demo project implements a webservice that distributes a raster operation
+over a cluster and returns diagnostic information about the operation execution.
+
+Each node in a GeoTrellis cluster (including the client application) needs to know
+an ip address of a node on the cluster.  That node is called the "seed node" but it
+can be any node -- there's nothing special about it, and you can include more than
+one seed node.
+
+When starting up the demo, you should start up some number of geotrellis "server" 
+processes (either on a single machine or on different machines) under separate sbt 
+sessions and then one "client" server, which is the server that will create a webservice
+and send work to the other nodes.
+
+To start up a server process on a dedicated machine, run:
+
+  ./sbt -Dgeotrellis.cluster_seed_ip="clusterseed" "run-main geotrellis.demo.RemoteServer"
+  
+To start up the client/webservice process on a dedicated machine, with a http service on port 8888, run:
+  ./sbt -Dgeotrellis.cluster_seed_ip="clusterseed" -Dgeotrellis.port=8888 "run-main geotrellis.demo.RemoteClient"
+
+but replace "clusterseed" with the hostname or ip address of one your nodes, or add a entry in /etc/hosts.
+
+If you want to run the demo on a single machine, you'll need to change the port each
+node listens to for remote communication (akka_port).  By default, the cluster seed port is 2551 (although you can change it by setting -Dgeotrellis.cluster_seed_port) so you'll need at least one node to listen to port 2551.  For example,
+
+```bash
+  ## start up one node
+  ./sbt -Dgeotrellis.akka_port="2551" "run-main geotrellis.demo.RemoteServer"
+ 
+  ## start up a second node
+  ./sbt -Dgeotrellis.akka_port="2552" "run-main geotrellis.demo.RemoteServer"
+
+  ## start up the web service on port 8888
+  ./sbt -Dgeotrellis.akka_port="2553" -Dgeotrellis.port=8888 "run-main geotrellis.demo.RemoteClient"
+```
+
+Once the webservice (RemoteClient) process connects to the cluster, it will start up 
+its embedded webserver on port 8888 (or whatever port you configure).
+
+If you are running it locally, you can now hit http://localhost:8888/gt/min to see an
+ascii tree of the execution it has executed.  If you add ?local=true to the URL, it
+will run the operation locally.  If you add ?json=true, you'll get a json representation
+of the operation eexcution.
+
+Note that the configuration of the demo service won't run "remote" operations on the
+client node: you can change that by changing "allow-local-routees = off" to on.
+
 Introduction to the Data Source API
 -----------------------------------
 

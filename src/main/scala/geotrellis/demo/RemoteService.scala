@@ -42,8 +42,6 @@ import akka.cluster.ClusterEvent.MemberUp
 
 import geotrellis.process._
 import akka.serialization._
-
-//import javax.ws.rs.core._
 import javax.ws.rs._
 
 import geotrellis.feature.Point
@@ -65,14 +63,7 @@ class Resource {
     local: String
   ) = {
     val app = RemoteClient.app
-   // var carbonLocation = "/home/jmarcus/projects/github/cluster-demo/src/main/scala/geotrellis/demo/src/main/resources/tiles/"
-   // val uncachedRaster = RemoteOperation(io.LoadRaster("mtsthelens_tiled"),app.router)
     val uncachedRaster = RemoteOperation(Literal(4).map(_ + 1),app.router)
-
-    //val histOp = GetHistogramAndLog(uncachedRaster)
-    //histOp.limit = 5000
-
-    //val histOp = Literal(3)
 
     val histOp = uncachedRaster
     RemoteClient.testSerialization(histOp, GeoTrellis.server)
@@ -89,7 +80,6 @@ class Resource {
     println(s"result: $result")
     println(s" ==== completed.  elapsed time: $elapsed\n")
 
-    //Response.ok(s"done in $elapsed").`type`("text/html").build()
     OK("{ 'elapsed': $elapsed }").build
   }
 }
@@ -176,7 +166,7 @@ object RemoteClient {
   val app = new RemoteClientApplication
   val server = app.server
   def main(args: Array[String]) {
-    if (args.nonEmpty) System.setProperty("akka.remote.netty.tcp.port", args(0))
+    //if (args.nonEmpty) System.setProperty("akka.remote.netty.tcp.port", args(0))
     println("[CLIENT] Connecting to cluster.")
 
     // wait until client joins the cluster, and then execute onClusterJoin
@@ -185,7 +175,7 @@ object RemoteClient {
     )
   }
 
-  // This method excecutes when the client has successfully connected to the cluster.
+  // This method executes when the client has successfully connected to the cluster.
   def onClusterJoin(server:Server) {
     WebRunner.run()
   }

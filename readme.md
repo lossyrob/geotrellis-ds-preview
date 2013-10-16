@@ -169,24 +169,62 @@ Here are some notes about setting this up manually on EC2.
 
 0) Set up a security group that will allow your nodes to communicate with each other (e.g. ports 2551-25xx) and provide you access to the web interface of the client.
 
-1) Start up a first AMI, which will be the seed node, and get its internal ip:
-  export SEEDIP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
-  echo $SEEDIP
+1) Start up a first AMI and check out this project, or use a pre-built AMI called "gt-cluster-demo" that you can use in region us-east-1: ami-d0f096b9.
+
+2) Login to seed node, and get its internal ip:
+```bash
+export SEEDIP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+echo $SEEDIP
+```
+
+3) Start a client (or server) on the seed node:
+```bash
+cd geotrellis-ds-preview
+./run_client_ec2.sh
+./sbt -Dgeotrellis.cluster_seed="$SEEDIP" -Dgeotrellis.port=8080-Dgeotrellis.hostname="$SEEDIP" "run-main geotrellis.demo.RemoteClient"
+```  
   
-3) Start a client (or server) on the seed node, e.g.:
-  ./sbt -Dgeotrellis.cluster_seed="$SEEDIP" -Dgeotrellis.port=8080-Dgeotrellis.hostname="$SEEDIP" "run-main geotrellis.demo.RemoteClient"
   
-  
+You should see output that looks like this:
+```
+ubuntu@ip-10-212-121-203:~/geotrellis-ds-preview$ ./run_client_ec2.sh
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100    14  100    14    0     0   5357      0 --:--:-- --:--:-- --:--:--  7000
+Detected sbt version 0.12.0
+Using /home/ubuntu/.sbt/0.12.0 as sbt dir, -sbt-dir to override.
+[info] Set current project to Geotrellis Cluster Demo (in build file:/home/ubuntu/geotrellis-ds-preview/)
+[warn] Potentially incompatible versions of dependencies of {file:/home/ubuntu/geotrellis-ds-preview/}default-b63795:
+[warn]    org.scala-lang: 2.10.2, 2.10.1
+[info] Running geotrellis.demo.RemoteClient
+[INFO] [10/16/2013 19:58:47.041] [run-main] [Remoting] Starting remoting
+[INFO] [10/16/2013 19:58:47.518] [run-main] [Remoting] Remoting started; listening on addresses :[akka.tcp://GeoTrellis@10.212.121.203:2551]
+[INFO] [10/16/2013 19:58:47.544] [run-main] [Cluster(akka://GeoTrellis)] Cluster Node [akka.tcp://GeoTrellis@10.212.121.203:2551] - Starting up...
+[INFO] [10/16/2013 19:58:47.654] [run-main] [Cluster(akka://GeoTrellis)] Cluster Node [akka.tcp://GeoTrellis@10.212.121.203:2551] - Registered cluster JMX MBean [akka:type=Cluster]
+[INFO] [10/16/2013 19:58:47.654] [run-main] [Cluster(akka://GeoTrellis)] Cluster Node [akka.tcp://GeoTrellis@10.212.121.203:2551] - Started up successfully
+[CLIENT] Connecting to cluster.
+[INFO] [10/16/2013 19:58:47.757] [GeoTrellis-akka.actor.default-dispatcher-4] [Cluster(akka://GeoTrellis)] Cluster Node [akka.tcp://GeoTrellis@10.212.121.203:2551] - Node [akka.tcp://GeoTrellis@10.212.121.203:2551] is JOINING, roles []
+[INFO] [10/16/2013 19:58:48.742] [GeoTrellis-akka.actor.default-dispatcher-12] [Cluster(akka://GeoTrellis)] Cluster Node [akka.tcp://GeoTrellis@10.212.121.203:2551] - Leader is moving node [akka.tcp://GeoTrellis@10.212.121.203:2551] to [Up]
+
+        --=== GEOTRELLIS SERVER ===--
+
+[GEOTRELLIS]  Including Admin Site...
+[GEOTRELLIS]  Starting server on port 8080.
+[GEOTRELLIS]    Including package geotrellis.admin.services
+[GEOTRELLIS]    Including package geotrellis.demo
+```
+
 4) Launch new server instances with AMI.  Use the following as user data, with 10.212.121.203 replaced with your seed ip:
 
+```bash
 #!/bin/bash
 
-# optional: add clusterseed as entry in /etc/hosts
-#!/bin/bash
-echo "10.212.121.203 clusterseed" >> /etc/hosts
+export CLUSTER_SEED=10.212.121.203
+
 sudo su - ubuntu
 cd /home/ubuntu/geotrellis-ds-preview
-./sbt -Dgeotrellis.cluster_seed="10.212.121.203" -Dgeotrellis.port=8888  -Dgeotrellis.hostname="`curl http://169.254.169.254/latest/meta-data/local-ipv4`" "run-main geotrellis.demo.RemoteServer"
+./sbt -Dgeotrellis.cluster_seed="$CLUSTER_SEED" -Dgeotrellis.port=8888  -Dgeotrellis.hostname="`curl http://169.254.169.254/latest/meta-data/local-ipv4`" "run-main geotrellis.demo.RemoteServer"
+```
 
 
 5) You should see debugging logging on the client/seed node as the other instances come up.  Hit the external ip address of your cluster node that's also running the web client, and you can see how the work is spread out over the nodes:

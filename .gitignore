@@ -1,4 +1,3 @@
-sbt
 .lib
 target
 project/target

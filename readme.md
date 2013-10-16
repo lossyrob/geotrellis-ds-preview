@@ -27,11 +27,14 @@ and send work to the other nodes.
 
 To start up a server process on a dedicated machine, run:
 
+```bash
   ./sbt -Dgeotrellis.cluster_seed_ip="clusterseed" "run-main geotrellis.demo.RemoteServer"
-  
+```
 To start up the client/webservice process on a dedicated machine, with a http service on port 8888, run:
-  ./sbt -Dgeotrellis.cluster_seed_ip="clusterseed" -Dgeotrellis.port=8888 "run-main geotrellis.demo.RemoteClient"
-
+```bash
+./sbt -Dgeotrellis.cluster_seed_ip="clusterseed" -Dgeotrellis.port=8888 "run-main geotrel
+lis.demo.RemoteClient"
+```
 but replace "clusterseed" with the hostname or ip address of one your nodes, or add a entry in /etc/hosts.
 
 If you want to run the demo on a single machine, you'll need to change the port each
@@ -41,7 +44,7 @@ node listens to for remote communication (akka_port).  By default, the cluster s
   ## start up one node
   ./sbt -Dgeotrellis.akka_port="2551" "run-main geotrellis.demo.RemoteServer"
  
-  ## start up a second node
+  ## start up a second node (in a separate terminal)
   ./sbt -Dgeotrellis.akka_port="2552" "run-main geotrellis.demo.RemoteServer"
 
   ## start up the web service on port 8888
@@ -160,12 +163,3 @@ never be built, but the datasource will pass along additional information necess
 produce its value or result from its sequence.
 
 
-
-Distributing your operations
-----------------------------
-
-Migration notes
-
-This is a fundamental shift from the old model, in which the primary mechanism for 
-distributing operations was calling a "dispatch" method (with a cluster reference) which
-distributed all child operations of a given operation.

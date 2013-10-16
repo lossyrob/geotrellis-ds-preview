@@ -169,7 +169,7 @@ Here are some notes about setting this up manually on EC2.
 
 0) Set up a security group that will allow your nodes to communicate with each other (e.g. ports 2551-25xx) and provide you access to the web interface of the client.
 
-1) Start up a first AMI and check out this project, or use a pre-built AMI called "gt-cluster-demo" that you can use in region us-east-1: ami-d0f096b9.
+1) Start up a first AMI and check out this project, or use a pre-built AMI called "geotrellis-ds-demo" that you can use in region us-east-1: ami-e37e2c8a.
 
 2) Login to seed node, and get its internal ip:
 ```bash

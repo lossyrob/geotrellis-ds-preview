@@ -28,14 +28,14 @@ and send work to the other nodes.
 To start up a server process on a dedicated machine, run:
 
 ```bash
-  ./sbt -Dgeotrellis.cluster_seed_ip="clusterseed" "run-main geotrellis.demo.RemoteServer"
+  ./sbt -Dgeotrellis.cluster_seed="clusterseed" -Dgeotrellis.hostname="`hostname`" "run-main geotrellis.demo.RemoteServer"
 ```
 To start up the client/webservice process on a dedicated machine, with a http service on port 8888, run:
 ```bash
-./sbt -Dgeotrellis.cluster_seed_ip="clusterseed" -Dgeotrellis.port=8888 "run-main geotrel
+./sbt -Dgeotrellis.cluster_seed="clusterseed" -Dgeotrellis.hostname="`hostname`" -Dgeotrellis.port=8888 "run-main geotrel
 lis.demo.RemoteClient"
 ```
-but replace "clusterseed" with the hostname or ip address of one your nodes, or add a entry in /etc/hosts.
+but replace "clusterseed" with the hostname or ip address of one your nodes, or add a entry in /etc/hosts.  Set geotrellis.hostname to the hostname or ip address that the other nodes can use.
 
 If you want to run the demo on a single machine, you'll need to change the port each
 node listens to for remote communication (akka_port).  By default, the cluster seed port is 2551 (although you can change it by setting -Dgeotrellis.cluster_seed_port) so you'll need at least one node to listen to port 2551.  For example,
@@ -162,4 +162,33 @@ whole raster that can be built from combining those rasters.  The overall result
 never be built, but the datasource will pass along additional information necessary to
 produce its value or result from its sequence.
 
+EC2 Notes
+---------
 
+Here are some notes about setting this up manually on EC2.
+
+0) Set up a security group that will allow your nodes to communicate with each other (e.g. ports 2551-25xx) and provide you access to the web interface of the client.
+
+1) Start up a first AMI, which will be the seed node, and get its internal ip:
+  export SEEDIP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+  echo $SEEDIP
+  
+3) Start a client (or server) on the seed node, e.g.:
+  ./sbt -Dgeotrellis.cluster_seed="$SEEDIP" -Dgeotrellis.port=8080-Dgeotrellis.hostname="$SEEDIP" "run-main geotrellis.demo.RemoteClient"
+  
+  
+4) Launch new server instances with AMI.  Use the following as user data, with 10.212.121.203 replaced with your seed ip:
+
+#!/bin/bash
+
+# optional: add clusterseed as entry in /etc/hosts
+#!/bin/bash
+echo "10.212.121.203 clusterseed" >> /etc/hosts
+sudo su - ubuntu
+cd /home/ubuntu/geotrellis-ds-preview
+./sbt -Dgeotrellis.cluster_seed="10.212.121.203" -Dgeotrellis.port=8888  -Dgeotrellis.hostname="`curl http://169.254.169.254/latest/meta-data/local-ipv4`" "run-main geotrellis.demo.RemoteServer"
+
+
+5) You should see debugging logging on the client/seed node as the other instances come up.  Hit the external ip address of your cluster node that's also running the web client, and you can see how the work is spread out over the nodes:
+
+http://domain:8080/min
